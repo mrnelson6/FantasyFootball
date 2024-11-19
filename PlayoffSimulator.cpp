@@ -247,11 +247,29 @@ public:
 		}
 	}
 
-	void ReorderTeams(std::string teamName, bool considerPointsFor)
+	void ReorderTeams(std::string teamName, bool considerPointsFor, bool bestCase)
 	{
 		if (!considerPointsFor)
 		{
-			if (teams.empty() || teams[0]->name == teamName)
+			if (bestCase) 
+			{
+				if (teams.empty() || teams[0]->name == teamName)
+				{
+					return;
+				}
+
+				for (int i = 0; i < teams.size(); ++i)
+				{
+					if (teams[i]->name == teamName)
+					{
+						std::iter_swap(teams.begin(), teams.begin() + i);
+						return;
+					}
+				}
+				return;
+			}
+
+			if (teams.empty() || teams[teams.size() - 1]->name == teamName)
 			{
 				return;
 			}
@@ -260,7 +278,7 @@ public:
 			{
 				if (teams[i]->name == teamName)
 				{
-					std::iter_swap(teams.begin(), teams.begin() + i);
+					std::iter_swap(teams.begin() + i, teams.begin() + teams.size() - 1);
 					return;
 				}
 			}
@@ -281,7 +299,7 @@ public:
 
 	}
 
-	void Simulate(std::string teamToCheck, bool considerPointsFor = false)
+	void Simulate(std::string teamToCheck, bool considerPointsFor = false, bool bestCase = true)
 	{
 		int numMakes = 0;
 		std::vector<int> seeds;
@@ -289,7 +307,7 @@ public:
 		int numPosiblities = std::pow(2, numGames); //33554431
 
 		SwampMatchups(teamToCheck);
-		ReorderTeams(teamToCheck, considerPointsFor);
+		ReorderTeams(teamToCheck, considerPointsFor, bestCase);
 		SetMinWinsIn();
 
 		for (int scen = 0; scen < numPosiblities; ++scen)
@@ -312,14 +330,9 @@ public:
 			}
 			if (GetPlayoffTeams(teamToCheck))
 			{
-				std::cout << teamToCheck << " made it with seed: " << std::to_string(scen) << std::endl;
+				//std::cout << teamToCheck << " made it with seed: " << std::to_string(scen) << std::endl;
 				numMakes++;
 				seeds.push_back(scen);
-
-				//for (int i = 0; i < teams.size(); ++i)
-				//{
-				//	std::cout << teams[i]->name << " went " << std::to_string(teams[i]->GetWins()) << "-" << std::to_string(teams[i]->GetLoses()) << "-" << std::to_string(teams[i]->GetTies()) << std::endl;
-				//}
 			}
 			ResetSim();
 		}
@@ -424,23 +437,17 @@ void Babes()
 
 	league.teamsInPlayoff = 4;
 
-	league.teams.push_back(new Team{ Bill, 2, 8, 0.0f });
-	league.teams.push_back(new Team{ Matt, 6, 4, 0.0f });
-	league.teams.push_back(new Team{ Caleb, 9, 1, 0.0f });
+	league.teams.push_back(new Team{ Bill, 3, 8, 0.0f });
+	league.teams.push_back(new Team{ Matt, 6, 5, 0.0f });
+	league.teams.push_back(new Team{ Caleb, 10, 1, 0.0f });
 	league.teams.push_back(new Team{ Austin, 8, 2, 0.0f });
-	league.teams.push_back(new Team{ Drew, 6, 4, 0.0f });
-	league.teams.push_back(new Team{ Jerry, 5,5, 0.0f });
-	league.teams.push_back(new Team{ Sam, 3, 6, 1, 0.0f });
-	league.teams.push_back(new Team{ John, 4, 6 , 0.0f });
-	league.teams.push_back(new Team{ Scott, 3,7, 0.0f });
+	league.teams.push_back(new Team{ Drew, 6, 5, 0.0f });
+	league.teams.push_back(new Team{ Jerry, 5,6, 0.0f });
+	league.teams.push_back(new Team{ Sam, 3, 7, 1, 0.0f });
+	league.teams.push_back(new Team{ John, 5, 6 , 0.0f });
+	league.teams.push_back(new Team{ Scott, 4,7, 0.0f });
 	league.teams.push_back(new Team{ Mike, 3, 6, 1, 0.0f });
 
-	//11
-	league.addMatchup(Matt, John);
-	league.addMatchup(Scott, Drew);
-	league.addMatchup(Mike, Austin);
-	league.addMatchup(Caleb, Sam);
-	league.addMatchup(Bill, Jerry);
 	//12
 	league.addMatchup(Matt, Scott);
 	league.addMatchup(John, Mike);
@@ -466,7 +473,7 @@ void Babes()
 	league.addMatchup(Austin, Scott);
 	league.addMatchup(Drew, John);
 
-	league.Simulate(Bill);
+	league.Simulate(Austin, false, false);
 }
 
 void Units()
@@ -488,51 +495,19 @@ void Units()
 
 	league.teamsInPlayoff = 6;
 
-	//put the team you want to calculate at the top of the list to give them the benefit of the doubt in ties
-	league.teams.push_back(new Team{ Nick, 8, 2, 2215.74f });
-	league.teams.push_back(new Team{ Matt, 7, 3, 2228.5f });
-	league.teams.push_back(new Team{ Hank, 7, 3, 1982.44f });
-	league.teams.push_back(new Team{ Kara, 7, 3, 1910.02f });
-	league.teams.push_back(new Team{ Chris, 6, 4, 2058.7f });
-	league.teams.push_back(new Team{ Jimmy, 5, 5, 2103.66f });
-	league.teams.push_back(new Team{ Holland, 5, 5, 2033.5f });
-	league.teams.push_back(new Team{ Fart, 5, 5, 1968.82f });
-	league.teams.push_back(new Team{ Zack, 4, 6, 1944.74f });
-	league.teams.push_back(new Team{ Will, 3, 7, 1993.3f });
-	league.teams.push_back(new Team{ Andrew, 2, 8, 1897.44f });
-	league.teams.push_back(new Team{ Lorrin, 1, 9, 1655.7f });
+	league.teams.push_back(new Team{ Nick, 9, 2, 2215.74f + 229.12 });
+	league.teams.push_back(new Team{ Matt, 8, 3, 2228.5f + 308.12 });
+	league.teams.push_back(new Team{ Hank, 7, 4, 1982.44f + 169.12 });
+	league.teams.push_back(new Team{ Kara, 7, 4, 1910.02f + 210.14 });
+	league.teams.push_back(new Team{ Chris, 7, 4, 2058.7f + 241.32 });
+	league.teams.push_back(new Team{ Jimmy, 6, 5, 2103.66f + 278.50 });
+	league.teams.push_back(new Team{ Holland, 6, 5, 2033.5f + 229.14 });
+	league.teams.push_back(new Team{ Fart, 5, 6, 1968.82f + 236.40 });
+	league.teams.push_back(new Team{ Zack, 4, 7, 1944.74f + 146.08 });
+	league.teams.push_back(new Team{ Will, 4, 7, 1993.3f + 234.54 });
+	league.teams.push_back(new Team{ Andrew, 2, 9, 1897.44f + 130.02 });
+	league.teams.push_back(new Team{ Lorrin, 1, 10, 1655.7f + 191.24 });
 
-	auto WillTeam = league.GetTeam(Will);
-	WillTeam->basewins++;
-
-	auto HollandTeam = league.GetTeam(Holland);
-	HollandTeam->basewins++;
-
-	auto AndrewTeam = league.GetTeam(Andrew);
-	AndrewTeam->baseloses++;
-
-	auto MattTeam = league.GetTeam(Matt);
-	MattTeam->basewins++;
-
-	auto JimmyTeam = league.GetTeam(Jimmy);
-	JimmyTeam->basewins++;
-
-	auto ZackTeam = league.GetTeam(Zack);
-	ZackTeam->baseloses++;
-
-	auto HankTeam = league.GetTeam(Hank);
-	HankTeam->baseloses++;
-
-	auto LorrinTeam = league.GetTeam(Lorrin);
-	LorrinTeam->baseloses++;
-
-	//11
-	//league.addMatchup(Matt, Hank);
-	league.addMatchup(Nick, Kara);
-	//league.addMatchup(Will, Andrew);
-	league.addMatchup(Chris, Fart);
-	//league.addMatchup(Holland, Lorrin);
-	//league.addMatchup(Zack, Jimmy);
 	//12
 	league.addMatchup(Matt, Nick);
 	league.addMatchup(Hank, Kara);
@@ -556,7 +531,7 @@ void Units()
 	league.addMatchup(Zack, Nick);
 
 
-	league.Simulate(Matt, true);
+	league.Simulate(Will, false, true);
 }
 
 void TestLeague()
@@ -578,5 +553,5 @@ void TestLeague()
 
 int main()
 {
-	Units();
+	Babes();
 }
